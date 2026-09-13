@@ -1,3 +1,4 @@
 # Bỏ qua tất cả các thư mục __pycache__ và file .pyc ở mọi nơi
-**/__pycache__/
-*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
