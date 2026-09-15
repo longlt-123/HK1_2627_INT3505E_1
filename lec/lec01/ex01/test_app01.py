@@ -8,6 +8,7 @@ class Exercise1Test(unittest.TestCase):
         self.client = app.test_client()
 
     def test_first_endpoint(self):
+        """ Kiểm tra endpoint/ có hoạt động đúng và trả về "Hello, API!" không """
         response = self.client.get('/')
         data = response.get_json()
 

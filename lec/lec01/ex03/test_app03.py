@@ -12,6 +12,7 @@ class TestStudentAPI(unittest.TestCase):
         STUDENTS.clear() 
 
     def test_create_student_success(self):
+        """ Kiểm tra trường hợp tạo sinh viên thành công khi gửi đầy đủ thông tin """
         payload = {
             "name": "Nguyễn Văn A",
             "gpa": 3.8
@@ -33,6 +34,7 @@ class TestStudentAPI(unittest.TestCase):
         self.assertEqual(len(STUDENTS), 1)
 
     def test_create_student_missing_name(self):
+        """ Kiểm tra trường hợp API báo lỗi 400 khi request bị thiếu trường 'name' """
         payload = {
             "gpa": 3.5
         }
@@ -51,6 +53,7 @@ class TestStudentAPI(unittest.TestCase):
         self.assertEqual(len(STUDENTS), 0)
 
     def test_create_student_default_gpa(self):
+        """ Kiểm tra API có tự động gán giá trị GPA mặc định khi chỉ gửi tên sinh viên hay không """
         payload = {
             "name": "Trần Thị B"
         }
