@@ -1,6 +1,6 @@
 import unittest
 import json
-from app import app 
+from app02 import app 
 
 class Exercise2Test(unittest.TestCase):
     def setUp(self):
