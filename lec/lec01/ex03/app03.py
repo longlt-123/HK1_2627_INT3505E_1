@@ -8,15 +8,16 @@ STUDENTS = []
 def create_student():
     body = request.get_json(silent=True) or {}
     name = body.get("name")
-    id = body.get("id", str(uuid4()))
-    gpa = body.get("gpa", 0.0)
     if not name:
         return jsonify({"error": "name là bắt buộc"}), 400
 
     student = {
-        "id": id,
+        "id": str(uuid4()),
         "name": name,
-        "gpa": gpa
+        "gpa": body.get("gpa", 0.0)
     }
     STUDENTS.append(student)
-    return jsonify({"id": id, "name": name, "gpa": gpa}), 201
+    return jsonify({"id": student["id"], "name": student["name"], "gpa": student["gpa"]}), 201
+
+if __name__ == "__main__":
+    app.run(host="127.0.0.1", port=5000, debug=True)
