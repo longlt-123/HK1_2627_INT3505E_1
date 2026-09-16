@@ -36,7 +36,7 @@ def list_books():
 def create_book():
     global _next
     body = request.get_json(silent=True) or {}
-    t, a, year = body.get("title"), body.get("author"), book.year("year")
+    t, a, year = body.get("title", ""), body.get("author", ""), book.year("year", 0)
     if not t or not a or not year:
         return {"error":"need title + author + year"}, 400
     try:
