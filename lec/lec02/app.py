@@ -1,6 +1,9 @@
 from flask import Flask, jsonify, make_response, request
+from urllib.parse import urlencode
 
 app = Flask(__name__)
+# ─── tham số phân trang
+DEFAULT_SIZE, MAX_SIZE = 20, 100
 app.config['JSON_SORT_KEYS'] = False
 BOOKS = []
 _next_id = 1
@@ -11,22 +14,63 @@ def find(book_id):
 # GET/books trả về danh sách sách với tùy biến
 @app.get("/books")
 def list_books():
-    if len(BOOKS) > 0:
-        data = BOOKS
-    else:
-        data = "no book in system"
-        return jsonify({"data": data, "total": len(BOOKS)}), 200
+    if not BOOKS:
+        return jsonify({"data": [], "pagination": None, "_links": {}}), 200
 
-    limit = int(request.args.get("limit", 200))
-    q = request.args.get("q", "")
-    sort_by = str(request.args.get("sort", ""))
+    try:
+        page = int(request.args.get("page", 1))
+        size = int(request.args.get("size", DEFAULT_SIZE))
+        limit_str = request.args.get("limit")
+        limit = int(limit_str) if limit_str else len(BOOKS)
+    except ValueError:
+        return jsonify({"error": "page, size, and limit must be integer"}), 400
 
-    result = [b for b in BOOKS if q in b["title"].lower()] if q else BOOKS[:limit]
+    page = max(page, 1)
+    size = max(min(size, MAX_SIZE), 1)
 
-    if sort_by:
-        result.sort(key=lambda x: x[sort_by].lower() if isinstance(x[sort_by], str) else x[sort_by])
+    result = BOOKS.copy()
+    q = request.args.get("q")
+    if q:
+        result = [b for b in result if q.lower() in b["title"].lower()]
 
-    return jsonify(result[:limit]), 200
+    a = request.args.get("author")
+    if a:
+        result = [b for b in result if a.lower() == b["author"].lower()]
+
+    result = result[:limit]
+    sort_by = request.args.get("sort")
+    if sort_by and len(result) > 0:
+        if sort_by in result[0]:
+            result.sort(key=lambda x: x[sort_by].lower() if isinstance(x[sort_by], str) else x[sort_by])
+
+    total = len(result); start=(page-1)*size; end=start+size
+    items = result[start:end]
+    last=(total+size-1)//size if total > 0 else 1
+
+    def u(p):
+        args = request.args.to_dict()
+        args["page"] = p
+        args["size"] = size
+        return f"/books?{urlencode(args)}"
+
+    links = {
+        "self": {"href": u(page)},
+        "first": {"href": u(1)}, 
+        "last": {"href": u(max(last, 1))}
+        }
+    if page > 1:
+        links["prev"] = {"href": u(page-1)}
+    if end < total:
+        links["next"] = {"href": u(page+1)}
+    
+    body = {"data":items,
+            "pagination":{"page":page,"size":size,"total":total,"total_pages":last},
+            "_links":links
+            }
+    
+    resp = make_response(jsonify(body), 200)
+    resp.headers["Cache-Control"]="public, max-age=30"
+    return resp
 
 # GET/books/id=... tìm sách theo id
 @app.get("/books/<int:bid>")

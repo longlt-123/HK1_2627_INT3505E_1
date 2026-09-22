@@ -17,7 +17,9 @@ class TestRESTfulBooksAPI(unittest.TestCase):
     def test_get_list_books(self):
         """ Test lấy danh sách tất cả sách """
         response = self.client.get('/books')
-        data = response.get_json()
+        
+        json_resp = response.get_json()
+        data = json_resp["data"] 
         
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(data, list)
@@ -25,32 +27,47 @@ class TestRESTfulBooksAPI(unittest.TestCase):
         self.assertEqual(data[0]["id"], 1)
         self.assertEqual(data[1]["id"], 2)
 
-    def test_get_list_books_with_query_string(self):
-        """ Test lấy danh sách tất cả sách với điều kiện trong query string """
-        response1 = self.client.get('/books?limit=1')
-        response2 = self.client.get('/books?q=rog')
-        response3 = self.client.get('/books?sort=year')
+    def test_filter_by_q(self):
+        """ Test search theo Title (không phân biệt hoa thường) """
+        response = self.client.get("/books?q=CLEAN")
+        data = response.get_json()
+        
+        self.assertEqual(len(data["data"]), 1)
+        self.assertEqual(data["data"][0]["title"], "Clean Code")
+        self.assertEqual(data["pagination"]["total"], 1)
 
-        data1 = response1.get_json()
-        data2 = response2.get_json()
-        data3 = response3.get_json()
+    def test_filter_by_author(self):
+        """ Test search theo Author chính xác """
+        response = self.client.get("/books?author=andy hunt")
+        data = response.get_json()
+        
+        self.assertEqual(len(data["data"]), 1)
+        self.assertEqual(data["data"][0]["author"], "Andy Hunt")
 
-        self.assertEqual(response1.status_code, 200)
-        self.assertEqual(response2.status_code, 200)
-        self.assertEqual(response3.status_code, 200)
+    def test_limit(self):
+        """ Test tham số limit có tác động chuẩn vào total hay không """
+        response = self.client.get("/books?limit=1")
+        data = response.get_json()
+        
+        self.assertEqual(data["pagination"]["total"], 1)
+        self.assertEqual(len(data["data"]), 1)
 
-        self.assertIsInstance(data1, list)
-        self.assertIsInstance(data2, list)
-        self.assertIsInstance(data3, list)
+    def test_sort_string(self):
+        """ Test sắp xếp theo key chữ (title) """
+        response = self.client.get("/books?sort=title")
+        data = response.get_json()
+        self.assertEqual(data["data"][0]["title"], "Clean Code")
 
-        self.assertEqual(len(data1), 1)
-        self.assertEqual(len(data2), 1)
-        self.assertEqual(len(data3), 2)
+    def test_sort_integer(self):
+        """ Test sắp xếp theo key số (year) """
+        response = self.client.get("/books?sort=year")
+        data = response.get_json()
+        self.assertEqual(data["data"][0]["year"], 1999)
 
-        self.assertEqual(data1[0], app.BOOKS[0])
-        self.assertEqual(data2[0], app.BOOKS[1])
-        self.assertEqual(data3[0], app.BOOKS[1])
-        self.assertEqual(data3[1], app.BOOKS[0])
+    def test_sort_invalid_key_safe_hateoas(self):
+        """ Test đảm bảo server không sập (trả về 200) khi truyền key sort ảo """
+        response = self.client.get("/books?sort=not_exist_key")
+        self.assertEqual(response.status_code, 200)
 
     def test_get_exist_book(self):
         """ Test lấy chi tiết của một cuốn sách theo ID """
@@ -196,6 +213,64 @@ class TestRESTfulBooksAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.get_json()["error"], "not found")
 
+    # ----------------------- HATEOAS & PAGINATION TEST ----------------------- #
+    def test_empty_books_hateoas(self):
+        """ Test cấu trúc trả về khi database không có sách """
+        app.BOOKS.clear()
+        response = self.client.get("/books")
+        data = response.get_json()
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["data"], [])
+        self.assertIsNone(data.get("pagination"))
+        self.assertEqual(data.get("_links"), {})
+
+    def test_invalid_parameters_hateoas(self):
+        """ Test lỗi 400 khi truyền string vào page hoặc size """
+        response = self.client.get("/books?page=abc")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("error", response.get_json())
+
+    def test_default_pagination_hateoas(self):
+        """ Test lấy danh sách mặc định (không filter, mặc định size lớn hơn tổng số sách) """
+        response = self.client.get("/books")
+        data = response.get_json()
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data["data"]), 2) 
+        self.assertEqual(data["pagination"]["total"], 2)
+        self.assertEqual(data["pagination"]["page"], 1)
+        
+        links = data["_links"]
+        self.assertIn("self", links)
+        self.assertIn("first", links)
+        self.assertIn("last", links)
+        self.assertNotIn("prev", links)
+        self.assertNotIn("next", links)
+
+    def test_pagination_logic_hateoas(self):
+        """ Test cắt trang (page, size) và tự động sinh prev/next link """
+        response1 = self.client.get("/books?page=1&size=1")
+        data1 = response1.get_json()
+        
+        self.assertEqual(len(data1["data"]), 1)
+        self.assertEqual(data1["data"][0]["title"], "Clean Code")
+        
+        links1 = data1["_links"]
+        self.assertIn("next", links1)
+        self.assertNotIn("prev", links1)
+        self.assertIn("page=2", links1["next"]["href"])
+
+        response2 = self.client.get("/books?page=2&size=1")
+        data2 = response2.get_json()
+        
+        self.assertEqual(len(data2["data"]), 1)
+        self.assertEqual(data2["data"][0]["title"], "Pragmatic Programmer")
+        
+        links2 = data2["_links"]
+        self.assertIn("prev", links2)
+        self.assertNotIn("next", links2)
+        self.assertIn("page=1", links2["prev"]["href"])
 
 if __name__ == "__main__":
     unittest.main()
