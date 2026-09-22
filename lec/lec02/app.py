@@ -1,8 +1,11 @@
-from flask import Flask, jsonify, make_response, request
+import sqlite3
+import hashlib
+import json
 from urllib.parse import urlencode
+from flask import Flask, request, jsonify, make_response
 
 app = Flask(__name__)
-# ─── tham số phân trang
+# --- CẤU HÌNH ---
 DEFAULT_SIZE, MAX_SIZE = 20, 100
 app.config['JSON_SORT_KEYS'] = False
 BOOKS = []
