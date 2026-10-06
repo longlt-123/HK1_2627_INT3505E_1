@@ -6,6 +6,8 @@
 
 ## 📂 Danh mục bài tập theo tuần
 
- [Tuần 01 - Giới thiệu & Cài đặt](./tuan-01/)
+ [Tuần 01 - Giới thiệu & Cài đặt](./lec01/)
  
- [Tuần 02 - Thiết kế dịch vụ & RESTful API](./tuan-02/)
+ [Tuần 02 - Kiến trúc REST và HTTP Fundamentals](./lec02/)
+
+ [Tuần 03 - Nguyên tắc Thiết kế API](./lec03/)
