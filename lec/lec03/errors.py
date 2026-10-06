@@ -49,3 +49,24 @@ class GetPostCommentsProblem(APIProblem):
             type_path="/probs/post-not-found",
             instance_path=f"/api/v1/posts/{post_id}/comments"
         )
+
+class InvalidCursorProblem(APIProblem):
+    def __init__(self, instance_path="/orders"):
+        super().__init__(
+            status=400,
+            title="Invalid cursor",
+            detail="The cursor is invalid, malformed, or does not match the current sort order.",
+            type_path="/probs/invalid-cursor",
+            instance_path=instance_path
+        )
+
+
+class InvalidOrderQueryProblem(APIProblem):
+    def __init__(self, detail, instance_path="/orders"):
+        super().__init__(
+            status=400,
+            title="Invalid order query",
+            detail=detail,
+            type_path="/probs/invalid-order-query",
+            instance_path=instance_path
+        )
