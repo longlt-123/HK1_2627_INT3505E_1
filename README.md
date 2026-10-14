@@ -11,3 +11,5 @@
  [Tuần 02 - Kiến trúc REST và HTTP Fundamentals](./lec/lec02/)
 
  [Tuần 03 - Nguyên tắc Thiết kế API](./lec/lec03/)
+
+ [Tuần 04 - API Specification và OpenAPI](./lec/lec04/)
