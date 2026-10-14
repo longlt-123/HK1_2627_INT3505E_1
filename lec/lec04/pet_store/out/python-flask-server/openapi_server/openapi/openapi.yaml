@@ -1,0 +1,301 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: 24021552@vnu.edu.vn
+  description: |
+    This is a sample Petstore server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Petstore - 24021552
+  version: 1.0.0
+servers:
+- description: SwaggerHub API Auto Mocking
+  url: https://virtserver.swaggerhub.com/vnu-12e/PetStore/1.0.0
+- url: https://petstore/v1
+tags:
+- description: Everything about your Pets
+  name: pet
+- description: Access to Petstore orders
+  name: store
+- description: Operations about user
+  name: user
+paths:
+  /pets:
+    get:
+      operationId: get_pets
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/Pet"
+                type: array
+          description: Lấy danh sách thành công
+      summary: Lấy danh sách toàn bộ thú cưng
+      tags:
+      - pet
+      x-openapi-router-controller: openapi_server.controllers.pet_controller
+    post:
+      operationId: pets_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+          description: Đã thêm thú cưng thành công
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_pets_post_400_response"
+          description: Dữ liệu đầu vào hoặc tham số không hợp lệ (Lỗi 400)
+      summary: Thêm thú cưng mới
+      tags:
+      - pet
+      x-openapi-router-controller: openapi_server.controllers.pet_controller
+  /pets/{pet_id}:
+    delete:
+      operationId: delete_petwith_id
+      parameters:
+      - description: ID của thú cưng
+        explode: false
+        in: path
+        name: pet_id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      responses:
+        "204":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+          description: Xóa thành công
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_pets_post_400_response"
+          description: Dữ liệu đầu vào hoặc tham số không hợp lệ (Lỗi 400)
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_pets_post_400_response"
+          description: Dữ liệu đầu vào hoặc tham số không hợp lệ (Lỗi 400)
+      summary: Xóa thú cưng theo ID
+      tags:
+      - pet
+      x-openapi-router-controller: openapi_server.controllers.pet_controller
+    get:
+      operationId: get_petwith_id
+      parameters:
+      - description: ID của thú cưng
+        explode: false
+        in: path
+        name: pet_id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+          description: Tìm thành công
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_pets_post_400_response"
+          description: Dữ liệu đầu vào hoặc tham số không hợp lệ (Lỗi 400)
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_pets_post_400_response"
+          description: Dữ liệu đầu vào hoặc tham số không hợp lệ (Lỗi 400)
+      summary: Lấy thông tin chi tiết một thú cưng theo ID
+      tags:
+      - pet
+      x-openapi-router-controller: openapi_server.controllers.pet_controller
+    patch:
+      operationId: modify_petwith_id
+      parameters:
+      - description: ID của thú cưng
+        explode: false
+        in: path
+        name: pet_id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/modifyPetwithID_request"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+          description: Sửa thành công
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_pets_post_400_response"
+          description: Dữ liệu đầu vào hoặc tham số không hợp lệ (Lỗi 400)
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_pets_post_400_response"
+          description: Dữ liệu đầu vào hoặc tham số không hợp lệ (Lỗi 400)
+      summary: Sửa đổi thông tin của thú cưng
+      tags:
+      - pet
+      x-openapi-router-controller: openapi_server.controllers.pet_controller
+    put:
+      description: Ghi đè thông tin cũ bằng một Object Pet hoàn toàn mới.
+      operationId: pets_pet_id_put
+      parameters:
+      - description: ID của thú cưng
+        explode: false
+        in: path
+        name: pet_id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pet"
+          description: Cập nhật thành công
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_pets_post_400_response"
+          description: Dữ liệu đầu vào hoặc tham số không hợp lệ (Lỗi 400)
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/_pets_post_400_response"
+          description: Dữ liệu đầu vào hoặc tham số không hợp lệ (Lỗi 400)
+      summary: Cập nhật thông tin thú cưng
+      tags:
+      - pet
+      x-openapi-router-controller: openapi_server.controllers.pet_controller
+components:
+  responses:
+    BadRequest:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/_pets_post_400_response"
+      description: Dữ liệu đầu vào hoặc tham số không hợp lệ (Lỗi 400)
+    NotFound:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/inline_object"
+      description: Không tìm thấy tài nguyên hệ thống (Lỗi 404)
+  schemas:
+    Pet:
+      example:
+        id: 10
+        name: Doggie
+        category: Chó
+        status: available
+      properties:
+        id:
+          example: 10
+          format: int64
+          title: id
+          type: integer
+        name:
+          example: Doggie
+          title: name
+          type: string
+        category:
+          example: Chó
+          title: category
+          type: string
+        status:
+          description: "Trạng thái thú cưng (available, pending, sold)"
+          example: available
+          title: status
+          type: string
+      required:
+      - id
+      - name
+      title: Pet
+      type: object
+    _pets_post_400_response:
+      example:
+        error_code: INVALID_INPUT
+        message: ID phải là một số nguyên dương.
+      properties:
+        error_code:
+          example: INVALID_INPUT
+          title: error_code
+          type: string
+        message:
+          example: ID phải là một số nguyên dương.
+          title: message
+          type: string
+      title: _pets_post_400_response
+      type: object
+    modifyPetwithID_request:
+      properties:
+        name:
+          title: name
+          type: string
+        category:
+          title: category
+          type: string
+        status:
+          title: status
+          type: string
+      title: modifyPetwithID_request
+      type: object
+    inline_object:
+      properties:
+        error_code:
+          example: NOT_FOUND
+          type: string
+        message:
+          example: Không tìm thấy dữ liệu yêu cầu.
+          type: string
+      type: object
