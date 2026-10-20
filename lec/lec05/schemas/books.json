@@ -5,8 +5,8 @@
     "isbn": {"type": "string"},
     "price_vnd": {"type": "integer", "minimum": 0},
     "stock": {"type": "integer", "minimum": 0},
-    "category_id": {"type": ["integer", "null"]}
+    "category_id": {"type": "integer", "minimum": 0}
   },
-  "required": ["title", "isbn", "price_vnd", "stock"],
+  "required": ["title", "isbn", "price_vnd", "stock", "category_id"],
   "additionalProperties": false
 }
