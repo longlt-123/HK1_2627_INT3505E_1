@@ -21,7 +21,7 @@ def seed_data():
     for i in range(1, 31):
         isbn = f"DEMO-{i:04d}"
         if db.session.scalar(db.select(Book).where(Book.isbn == isbn)) is None:
-            book = Book(title=f"Sách mẫu {i % 5 + 1}", isbn=isbn,
+            book = Book(title=f"Sach mau {i % 5 + 1}", isbn=isbn,
                         price_vnd=50000 + (i % 4) * 25000, stock=i % 7,
                         category=categories[(i - 1) % 3], authors=[author])
             db.session.add(book)
