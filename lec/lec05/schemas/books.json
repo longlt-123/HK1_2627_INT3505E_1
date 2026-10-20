@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "properties": {
+    "title": {"type": "string"},
+    "isbn": {"type": "string"},
+    "price_vnd": {"type": "integer", "minimum": 0},
+    "stock": {"type": "integer", "minimum": 0},
+    "category_id": {"type": ["integer", "null"]}
+  },
+  "required": ["title", "isbn", "price_vnd", "stock"],
+  "additionalProperties": false
+}
