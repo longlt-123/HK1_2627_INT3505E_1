@@ -35,7 +35,7 @@ def create_book():
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        return jsonify({"error"}), 409
+        return jsonify({"error": "ISBN đã tồn tại hoặc khóa ngoại không hợp lệ"}), 409
 
     return jsonify(book.to_dict()), 201
 
@@ -60,7 +60,7 @@ def update_book(id):
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        return jsonify({"error"}), 409
+        return jsonify({"error": "Dữ liệu trùng hoặc khóa ngoại không hợp lệ"}), 409
 
     return jsonify(book.to_dict())
 
