@@ -13,3 +13,8 @@
  [Tuần 03 - Nguyên tắc Thiết kế API](./lec/lec03/)
 
  [Tuần 04 - API Specification và OpenAPI](./lec/lec04/)
+
+ [Tuần 05 - Data Modeling và Resource Design](./lec/lec05/)
+
+ [Tuần 06 - Authentication và Authorization](./lec/lec06/)
+  
