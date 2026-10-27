@@ -1,0 +1,297 @@
+openapi: 3.0.3
+info:
+  title: Social Network API
+  version: 1.0.0
+  description: 'OpenAPI spec của một API social-network cho 3 endpoint sau — POST /auth/login, POST /auth/refresh, GET /posts/{id}'
+servers:
+- url: https://api.example.com
+
+paths:
+  /auth/login:
+    post:
+      operationId: login
+      summary: Đăng nhập và cấp cặp token
+      security: []
+      x-required-scopes: []
+      description: Không cần access token hay scope trước khi đăng nhập. Kiểm tra
+        username/password. Scope cấp phát do server xác định; không nhận scope do
+        client tự gán. Tài khoản không tồn tại, sai mật khẩu hoặc bị vô hiệu hóa đều
+        trả cùng lỗi 401.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TokenPair'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+  
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - username
+      - password
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 100
+        password:
+          type: string
+          format: password
+          minLength: 1
+          maxLength: 1024
+          writeOnly: true
+    TokenPair:
+      type: object
+      additionalProperties: false
+      required:
+      - access_token
+      - refresh_token
+      - token_type
+      - expires_in
+      - refresh_expires_in
+      - scope
+      properties:
+        access_token:
+          type: string
+          minLength: 1
+        refresh_token:
+          type: string
+          minLength: 1
+        token_type:
+          type: string
+          enum:
+          - Bearer
+        expires_in:
+          type: integer
+          enum:
+          - 900
+        refresh_expires_in:
+          type: integer
+          enum:
+          - 604800
+        scope:
+          type: string
+          description: Scope được server cấp, phân cách bằng dấu cách; có thể rỗng
+            nếu không có quyền.
+          example: posts:read
+
+    Error:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - message
+      properties:
+        code: 
+          type: string
+          minLength: 1
+        message: 
+          type: string
+          minLength: 1
+  responses:
+    BadRequest:
+      description: JSON không hợp lệ, thiếu trường hoặc dữ liệu không đúng schema.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
+          description: Không cache phản hồi.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: INVALID_REQUEST
+            message: JSON không hợp lệ, thiếu trường hoặc dữ liệu không đúng schema.
+    InvalidCredentials:
+      description: Tên đăng nhập hoặc mật khẩu không đúng; không tiết lộ tài khoản
+        có tồn tại hay không.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
+          description: Không cache phản hồi.
+        WWW-Authenticate:
+          description: Challenge cho cơ chế xác thực của endpoint.
+          schema:
+            type: string
+          example: Login realm="social-api"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: INVALID_CREDENTIALS
+            message: Tên đăng nhập hoặc mật khẩu không đúng; không tiết lộ tài khoản
+              có tồn tại hay không.
+    InvalidRefresh:
+      description: Refresh token không hợp lệ, hết hạn, bị thu hồi hoặc đã dùng. Không
+        tiết lộ nguyên nhân cụ thể.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
+          description: Không cache phản hồi.
+        WWW-Authenticate:
+          description: Challenge cho cơ chế xác thực của endpoint.
+          schema:
+            type: string
+          example: RefreshToken realm="social-api"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: INVALID_REFRESH_TOKEN
+            message: Refresh token không hợp lệ, hết hạn, bị thu hồi hoặc đã dùng.
+              Không tiết lộ nguyên nhân cụ thể.
+    Unauthorized:
+      description: Thiếu access token, token hết hạn, sai chữ ký, sai issuer/audience
+        hoặc phiên không còn hợp lệ.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
+          description: Không cache phản hồi.
+        WWW-Authenticate:
+          description: Challenge cho cơ chế xác thực của endpoint.
+          schema:
+            type: string
+          example: Bearer realm="social-api"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: INVALID_ACCESS_TOKEN
+            message: Thiếu access token, token hết hạn, sai chữ ký, sai issuer/audience
+              hoặc phiên không còn hợp lệ.
+    Forbidden:
+      description: Access token hợp lệ nhưng không có scope posts:read.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
+          description: Không cache phản hồi.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: INSUFFICIENT_SCOPE
+            message: Access token hợp lệ nhưng không có scope posts:read.
+    NotFound:
+      description: Bài viết không tồn tại hoặc người gọi không được phép xem. Hai
+        trường hợp có cùng phản hồi.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
+          description: Không cache phản hồi.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: POST_NOT_FOUND
+            message: Bài viết không tồn tại hoặc người gọi không được phép xem. Hai
+              trường hợp có cùng phản hồi.
+    UnsupportedMediaType:
+      description: 'Request body phải có Content-Type: application/json.'
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
+          description: Không cache phản hồi.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: UNSUPPORTED_MEDIA_TYPE
+            message: 'Request body phải có Content-Type: application/json.'
+    TooManyRequests:
+      description: Quá nhiều yêu cầu; thử lại sau số giây trong Retry-After.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
+          description: Không cache phản hồi.
+        Retry-After:
+          description: Số giây cần chờ.
+          schema:
+            type: integer
+            minimum: 1
+          example: 60
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: RATE_LIMITED
+            message: Quá nhiều yêu cầu; thử lại sau số giây trong Retry-After.
+    InternalError:
+      description: Lỗi máy chủ; không trả stack trace, SQL hoặc thông tin nội bộ.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
+          description: Không cache phản hồi.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: INTERNAL_ERROR
+            message: Lỗi máy chủ; không trả stack trace, SQL hoặc thông tin nội bộ.
+    TokenPair:
+      description: Cấp access token (15 phút) và refresh token mới (7 ngày).
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
+        Pragma:
+          schema:
+            type: string
+            enum:
+            - no-cache
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TokenPair'
