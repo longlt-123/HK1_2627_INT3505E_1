@@ -28,14 +28,14 @@ paths:
           $ref: '#/components/responses/TokenPair'
         '400':
           $ref: '#/components/responses/BadRequest'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalError'
         '401':
           $ref: '#/components/responses/InvalidCredentials'
         '415':
           $ref: '#/components/responses/UnsupportedMediaType'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
   
   /auth/refresh:
     post:
@@ -72,16 +72,82 @@ paths:
           $ref: '#/components/responses/TokenPair'
         '400':
           $ref: '#/components/responses/BadRequest'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalError'
         '401':
           $ref: '#/components/responses/InvalidRefresh'
         '415':
           $ref: '#/components/responses/UnsupportedMediaType'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
   
+  /posts/{id}:
+    get:
+      operationId: getPost
+      summary: Xem một bài viết
+      security:
+      - BearerAuth: []
+      x-required-scopes:
+      - posts:read
+      description: 'Bắt buộc access token hợp lệ có scope posts:read, kể cả với bài
+        public.
+
+        Kiểm tra xác thực trước, scope sau, rồi quyền đối với bài viết.
+
+        public: mọi người dùng đã xác thực có scope được xem; friends: tác giả hoặc
+        bạn bè đã được chấp nhận; private: chỉ tác giả.
+
+        Scope posts:read không cho phép đọc mọi bài riêng tư. Không tồn tại hoặc bị
+        từ chối ở mức bài viết đều trả 404 giống nhau để hạn chế dò ID.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ID nguyên dương của bài viết.
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+        example: 42
+      responses:
+        '200':
+          description: Bài viết được phép xem; chỉ trả các trường công khai theo schema.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+              example:
+                id: 42
+                author_id: 7
+                content: Xin chào!
+                visibility: public
+                created_at: '2026-10-27T08:00:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
 components:
+  securitySchemes:
+      BearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
+        description: 'Authorization: Bearer <access_token>. Quyền posts:read được kiểm
+          tra trong claim scope; không dùng refresh token ở đây.'
   schemas:
     LoginRequest:
       type: object
@@ -112,7 +178,7 @@ components:
           minLength: 1
           maxLength: 2048
           writeOnly: true
-          
+
     TokenPair:
       type: object
       additionalProperties: false
@@ -161,6 +227,37 @@ components:
         message: 
           type: string
           minLength: 1
+
+    Post:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - author_id
+      - content
+      - visibility
+      - created_at
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        author_id:
+          type: integer
+          format: int64
+          minimum: 1
+        content:
+          type: string
+        visibility:
+          type: string
+          enum:
+          - public
+          - friends
+          - private
+        created_at:
+          type: string
+          format: date-time
+
   responses:
     BadRequest:
       description: JSON không hợp lệ, thiếu trường hoặc dữ liệu không đúng schema.
