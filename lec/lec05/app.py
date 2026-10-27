@@ -14,8 +14,10 @@ def create_app(test_config=None):
         SECRET_KEY=os.getenv("SECRET_KEY", "bookstore-local-lab-key"),
         MAX_CONTENT_LENGTH=1024 * 1024,
     )
+
     if test_config:
         app.config.update(test_config)
+
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
     db.init_app(app)
     from routes.books import books_bp
