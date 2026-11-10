@@ -13,7 +13,7 @@ class ProductsTest(unittest.TestCase):
         self.client = self.app.test_client()
         self.url = "/api/v1/products"
         response = self.client.post(self.url, json={
-            "sku": "ABC", "name": "Pen", "price": 12.5, "qty_in_stock": 5,
+            "sku": "ABC", "name": "Pen", "price_cents": 1250, "qty_in_stock": 5,
         })
         self.assertEqual(response.status_code, 201)
         self.product_url = f"{self.url}/{response.json['id']}"
@@ -26,7 +26,7 @@ class ProductsTest(unittest.TestCase):
     def test_get_and_missing_product(self):
         response = self.client.get(self.product_url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json["price"], 12.5)
+        self.assertEqual(response.json["price_cents"], 1250)
         self.assertEqual(self.client.get(f"{self.url}/999").status_code, 404)
 
     def test_reserve_and_insufficient_stock(self):
@@ -55,6 +55,6 @@ class ProductsTest(unittest.TestCase):
 
     def test_create_validation_and_duplicate(self):
         self.assertEqual(self.client.post(self.url, json={"sku": "XYZ", "name": "Pen"}).status_code, 422)
-        response = self.client.post(self.url, json={"sku": "ABC", "name": "Pen", "price": 1})
+        response = self.client.post(self.url, json={"sku": "ABC", "name": "Pen", "price_cents": 100})
         self.assertEqual(response.status_code, 409)
         self.assertEqual(self.client.get(self.url + "?page=abc").status_code, 400)

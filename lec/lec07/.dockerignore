@@ -1,0 +1,13 @@
+.git
+.env
+.venv
+__pycache__
+**/__pycache__
+.pytest_cache
+.test-tmp
+instance
+*.db
+tests
+products_code_first.py
+products_design_first.py
+products_openapi.yaml

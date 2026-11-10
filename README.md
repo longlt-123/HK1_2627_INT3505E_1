@@ -17,4 +17,7 @@
  [Tuần 05 - Data Modeling và Resource Design](./lec/lec05/)
 
  [Tuần 06 - Authentication và Authorization](./lec/lec06/)
+
+ [Tuần 07 - Nguyên lý triển khai
+Backend Service](./lec/lec07/)
   
