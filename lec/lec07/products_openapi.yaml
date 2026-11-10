@@ -1,0 +1,60 @@
+# BƯỚC 1: Thiết kế hợp đồng API trước khi viết server.
+# Dùng OpenAPI 3.0.3 để tương thích server Flask/Connexion được sinh.
+openapi: 3.0.3
+info:
+  title: Products API - Design-first
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:5001
+paths:
+  /products:
+    get:
+      tags: [products]
+      operationId: list_products
+      summary: Lấy danh sách sản phẩm
+      responses:
+        '200':
+          description: Danh sách sản phẩm
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+    post:
+      tags: [products]
+      operationId: create_product
+      summary: Thêm sản phẩm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+      responses:
+        '201':
+          description: Sản phẩm đã tạo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: JSON sai cú pháp, body trống hoặc dữ liệu không đúng schema
+        '415':
+          description: Content-Type không phải JSON
+components:
+  schemas:
+    Product:
+      type: object
+      required: [name, price]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: Bút bi
+        price:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+          example: 5000
