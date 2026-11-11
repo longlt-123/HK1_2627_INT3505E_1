@@ -23,6 +23,7 @@ paths:
   /books:
     get:
       # LAB 2 intentional issue 1: operationId is missing.
+      operationId: listBooks
       parameters:
         - in: query
           name: author
