@@ -91,11 +91,7 @@ paths:
       operationId: deleteBook
       responses:
         '204':
-          description: Deleted (response has no body)
-          # LAB 2 intentional issue 2: 204 incorrectly declares a body.
-          content:
-            application/json:
-              schema: {type: object}
+          description: Deleted
         '404': {$ref: '#/components/responses/NotFound'}
 components:
   schemas:
