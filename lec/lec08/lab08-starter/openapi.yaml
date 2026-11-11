@@ -104,7 +104,7 @@ components:
         title: {type: string, minLength: 1, maxLength: 200}
         author: {type: string, minLength: 1, maxLength: 200}
         # LAB 2 intentional issue 3: actual Book.year is integer/null.
-        year: {type: string, nullable: true}
+        year: {type: integer, nullable: true}
         isbn: {type: string, pattern: '^\d{13}$', nullable: true}
     BookInput:
       type: object
