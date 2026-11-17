@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Books API — Lab08 Starter",
-    "description": "Lab 3: add error-cases/ folder with POST missing title and GET missing id. Collection currently contains happy paths only.",
+    "description": "Lab 3: five CRUD happy paths and two error cases. Each request checks status and body. POST stores book_id in collection variables for GET, PUT and DELETE.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -67,13 +67,27 @@
           },
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.unset(\"book_id\");"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"201 Created\", () => pm.response.to.have.status(201));",
-                  "pm.test(\"positive id\", () => pm.expect(pm.response.json().id).to.be.above(0));",
-                  "if (pm.response.code === 201) pm.collectionVariables.set(\"book_id\", pm.response.json().id);"
+                  "pm.test(\"created book matches input and has a positive integer id\", () => {",
+                  "  const book = pm.response.json();",
+                  "  pm.expect(book.id).to.be.a(\"number\").and.above(0);",
+                  "  pm.expect(Number.isInteger(book.id)).to.eql(true);",
+                  "  pm.expect(book).to.deep.equal({id: book.id, title: \"DDIA\", author: \"Kleppmann\", year: 2017, isbn: null});",
+                  "  if (pm.response.code === 201) pm.collectionVariables.set(\"book_id\", book.id);",
+                  "});"
                 ]
               }
             }
@@ -102,7 +116,9 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
-                  "pm.test(\"expected fields\", () => pm.expect(pm.response.json()).to.have.all.keys(\"id\", \"title\", \"author\", \"year\", \"isbn\"));"
+                  "pm.test(\"body is the book created by POST\", () => {",
+                  "  pm.expect(pm.response.json()).to.deep.equal({id: Number(pm.collectionVariables.get(\"book_id\")), title: \"DDIA\", author: \"Kleppmann\", year: 2017, isbn: null});",
+                  "});"
                 ]
               }
             }
@@ -145,7 +161,9 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
-                  "pm.test(\"updated title\", () => pm.expect(pm.response.json().title).to.eql(\"DDIA revised\"));"
+                  "pm.test(\"body contains updated fields for the same book\", () => {",
+                  "  pm.expect(pm.response.json()).to.deep.equal({id: Number(pm.collectionVariables.get(\"book_id\")), title: \"DDIA revised\", author: \"Kleppmann\", year: 2017, isbn: null});",
+                  "});"
                 ]
               }
             }
@@ -175,6 +193,90 @@
                 "exec": [
                   "pm.test(\"204 No Content\", () => pm.response.to.have.status(204));",
                   "pm.test(\"empty body\", () => pm.expect(pm.response.text()).to.eql(\"\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "error-cases",
+      "item": [
+        {
+          "name": "POST /books — missing title",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/books",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"author\": \"Kleppmann\", \"year\": 2017}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"400 Bad Request\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"validation error identifies the missing title\", () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.code).to.eql(\"VALIDATION_ERROR\");",
+                  "  pm.expect(body.message).to.eql(\"Invalid book data\");",
+                  "  pm.expect(body.errors).to.be.an(\"array\");",
+                  "  pm.expect(body.errors).to.deep.include({field: \"title\", message: \"Missing data for required field.\"});",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /books/9999 — not found",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/books/9999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "books",
+                "9999"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"404 Not Found\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"body describes the missing book\", () => {",
+                  "  pm.expect(pm.response.json()).to.deep.equal({code: \"NOT_FOUND\", message: \"Book not found\"});",
+                  "});"
                 ]
               }
             }
