@@ -28,3 +28,20 @@ Kết quả chạy thực tế ngày 17/11/2026:
 ```powershell
 newman.cmd run books-api.postman_collection.json -e postman/local.postman_environment.json -r cli,junit --reporter-junit-export reports/junit.xml
 ```
+
+# Lab04 — Locust
+
+Đã thêm `search_by_year(year=None)`, kiểm tra response tìm sách đúng năm và đánh dấu lỗi giả lập với xác suất 1% trên mỗi search hợp lệ. Lỗi được tạo bằng `response.failure()` phía Locust, **không phải HTTP 500 thật từ Flask**. POST tạo sách có năm để phục vụ task tìm kiếm.
+
+Đã chạy A → B → C ngày 17/11/2026 trên **API đang chạy tại `http://127.0.0.1:5000`**, cùng database hiện có:
+
+| Kịch bản | Users | Duration | Requests | p95 tổng | RPS | Failures |
+|---|---:|---:|---:|---:|---:|---:|
+| [A](reports/A.html) | 10 | 30s | 140 | 12 ms | 4,77 | 1 giả lập |
+| [B](reports/B.html) | 50 | 60s | 1396 | 12 ms | 23,43 | 2 giả lập |
+| [C](reports/C.html) | 200 | 30s | 2883 | 73 ms | 97,47 | 0 |
+
+Cả ba lượt đạt p95 < 300 ms trong môi trường local; chưa thể suy ra SLO production. C có p95 tổng cao nhất. Không ghi nhận failure ngoài giả lập; 404 dự kiến của task đọc ID ngẫu nhiên được coi là hợp lệ. Các lượt POST đã thêm 639 sách thử vào database. C không gặp lỗi giả lập là một kết quả ngẫu nhiên hợp lệ, không phải đã tắt cấu hình 1%.
+
+- [Phân tích đầy đủ và câu hỏi bonus](performance/analysis.md).
+- [Số liệu cuối lượt trích từ HTML](reports/lab4-summary.json).

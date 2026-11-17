@@ -1,14 +1,19 @@
-"""Lab 4 starter: weighted tasks, optional 404, no deliberate server errors.
+"""Lab 4: weighted tasks and 1% client-side simulated failures on year searches.
 
-Run: locust -f performance/locustfile.py --headless -H http://127.0.0.1:5000 \
-         -u 10 -r 2 -t 30s --html reports/A.html
+The injected failure is NOT an HTTP 500 returned by Flask.
+Set LOCUST_FAKE_FAILURE_RATE=0 to disable injection for a CI baseline.
 """
 import itertools
+import os
 import random
 
 from locust import HttpUser, between, task
 
 _counter = itertools.count(1)
+YEARS = (2017, 2021, 2024)
+FAKE_FAILURE_RATE = float(os.environ.get("LOCUST_FAKE_FAILURE_RATE", "0.01"))
+if not 0 <= FAKE_FAILURE_RATE <= 1:
+    raise ValueError("LOCUST_FAKE_FAILURE_RATE must be between 0 and 1")
 
 
 class BooksUser(HttpUser):
@@ -35,9 +40,36 @@ class BooksUser(HttpUser):
         unique = next(_counter)
         self.client.post(
             "/books",
-            json={"title": f"Load test {unique}", "author": "locust"},
+            json={
+                "title": f"Load test {unique}",
+                "author": "locust",
+                "year": random.choice(YEARS),
+            },
             name="POST /books",
         )
 
-    # LAB 4: add search_by_year() and explain any injected failures.
-    # A client-side artificial failure is not a real HTTP 500 from the server.
+    @task(1)
+    def search_by_year(self, year=None):
+        # Locust invokes tasks without arguments; callers may supply a year.
+        year = random.choice(YEARS) if year is None else year
+        with self.client.get(
+            "/books",
+            params={"year": year},
+            name="GET /books?year={year}",
+            catch_response=True,
+        ) as response:
+            if response.status_code != 200:
+                response.failure(f"Year search: unexpected HTTP {response.status_code}")
+                return
+            try:
+                books = response.json()
+            except ValueError:
+                response.failure("Year search: response is not JSON")
+                return
+            if not isinstance(books, list) or any(
+                not isinstance(book, dict) or book.get("year") != year
+                for book in books
+            ):
+                response.failure("Year search: expected an array of books matching the year")
+            elif random.random() < FAKE_FAILURE_RATE:
+                response.failure("Injected failure: simulated 500 (client-side; actual HTTP 200)")

@@ -5,3 +5,9 @@ __pycache__/
 *.db
 
 .pytest_cache/
+
+lec/lec08/lab08-starter/reports/before-lab4-*/
+lec/lec08/lab08-starter/reports/lab4-submission.zip
+lec/lec08/lab08-starter/reports/*_stats_history.csv
+lec/lec08/lab08-starter/reports/*_exceptions.csv
+lec/lec08/lab08-starter/reports/*.log
