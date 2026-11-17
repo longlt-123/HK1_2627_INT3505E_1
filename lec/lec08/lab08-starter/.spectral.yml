@@ -1,1 +1,32 @@
 ﻿extends: ["spectral:oas"]
+
+rules:
+  no-content-in-204:
+    description: Response 204 must not define content.
+    severity: error
+    given: "$.paths[*][get,put,post,delete,options,head,patch,trace].responses['204']"
+    then:
+      field: content
+      function: undefined
+
+  response-200-non-empty-schema:
+    description: Every 200 response must define content with a non-empty schema for each media type.
+    severity: error
+    given: "$.paths[*][get,put,post,delete,options,head,patch,trace].responses['200']"
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          required: [content]
+          properties:
+            content:
+              type: object
+              minProperties: 1
+              additionalProperties:
+                type: object
+                required: [schema]
+                properties:
+                  schema:
+                    type: object
+                    minProperties: 1

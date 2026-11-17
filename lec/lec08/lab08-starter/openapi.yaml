@@ -5,12 +5,22 @@ info:
   description: |
     Educational API. LAB 2: three *intentional* contract defects remain.
     The application is the reference for intended behavior.
+  contact:
+    name: OpenAPI Lab
+    email: lelong28032006@gmail.com
 servers:
   - url: http://localhost:5000
+tags:
+  - name: Health
+    description: Service health checks.
+  - name: Books
+    description: Book catalog operations.
 paths:
   /health:
     get:
       operationId: healthCheck
+      description: Check whether the service is ready.
+      tags: [Health]
       responses:
         '200':
           description: Service is ready
@@ -24,6 +34,8 @@ paths:
     get:
       # LAB 2 intentional issue 1: operationId is missing.
       operationId: listBooks
+      description: List books with optional author and year filters and page-based pagination.
+      tags: [Books]
       parameters:
         - in: query
           name: author
@@ -44,6 +56,8 @@ paths:
                 items: {$ref: '#/components/schemas/Book'}
     post:
       operationId: createBook
+      description: Create a book from the supplied title, author, and optional year and ISBN.
+      tags: [Books]
       requestBody:
         required: true
         content:
@@ -65,6 +79,8 @@ paths:
         schema: {type: integer, minimum: 1}
     get:
       operationId: getBook
+      description: Retrieve a book by its ID.
+      tags: [Books]
       responses:
         '200':
           description: Book found
@@ -74,6 +90,8 @@ paths:
         '404': {$ref: '#/components/responses/NotFound'}
     put:
       operationId: updateBook
+      description: Update a book identified by its ID using the supplied book details.
+      tags: [Books]
       requestBody:
         required: true
         content:
@@ -89,6 +107,8 @@ paths:
         '404': {$ref: '#/components/responses/NotFound'}
     delete:
       operationId: deleteBook
+      description: Delete a book identified by its ID.
+      tags: [Books]
       responses:
         '204':
           description: Deleted
