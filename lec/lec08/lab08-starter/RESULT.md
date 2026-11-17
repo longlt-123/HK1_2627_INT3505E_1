@@ -3,6 +3,30 @@
 Kết quả test:
 ![Chạy test](/lec/lec08/lab08-starter/images/image.png)
 
+# Lab02 — OpenAPI/Spectral
+
+Sử dụng Spectral để kiểm tra tài liệu `openapi.yaml` theo bộ quy tắc `spectral:oas` và các custom rule trong `.spectral.yml`.
+
+**Trước khi bổ sung thông tin còn thiếu:** Spectral báo **13 warnings, 0 errors**, gồm thiếu `info.contact`, thiếu `description` và `tags` ở 6 operation.
+
+![Spectral trước khi sửa: 13 warnings, 0 errors](images/spectral.png)
+
+Đã bổ sung `info.contact`, mô tả và tags cho các operation, đồng thời khai báo hai nhóm tags `Health` và `Books` ở cấp gốc của spec.
+
+File `.spectral.yml` có hai custom rule với mức `error`:
+
+| Custom rule | Trường hợp bị phát hiện | Cách sửa |
+|---|---|---|
+| `no-content-in-204` | Response HTTP 204 vẫn khai báo trường `content`, kể cả `content: {}` | Bỏ trường `content` khỏi response 204 |
+| `response-200-non-empty-schema` | Response HTTP 200 thiếu `content`, `content` rỗng hoặc một media type thiếu `schema`, có `schema: {}` hay `schema: null` | Khai báo content và schema không rỗng cho từng media type |
+
+**Ảnh kết quả sau khi sửa:** Spectral thông báo không tìm thấy lỗi ở mức `error`.
+
+![Spectral sau khi sửa: không tìm thấy lỗi mức error](<images/spectral(1).png>)
+![Spectral sau khi sửa: không tìm thấy lỗi mức error](<images/spectral(2).png>)
+
+Kết quả: **0 warnings, 0 errors**
+
 # Lab03 — Postman/Newman
 
 Đã hoàn thành 5 happy-path requests và folder `error-cases` gồm POST thiếu `title` (400) và GET `/books/9999` (404). Mỗi request có 2 `pm.test`: status và body. POST lưu `book_id` bằng `pm.collectionVariables`, GET/PUT/DELETE dùng lại ID này.
